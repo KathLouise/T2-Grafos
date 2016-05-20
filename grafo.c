@@ -144,11 +144,9 @@ static vertice cria_vertice(grafo g, const char *nome){
         v->grau_entrada = 0;
         v->grau_saida = 0;
         v->removido = 0;
-        v->rotulo = n_rotulo;
         g->vertices[v->id] = v;
         g->n_vertices++;
-        
-        n_rotulo++;
+
     }
  
     return v;
@@ -573,4 +571,5 @@ int ordem_perfeita_eliminacao(lista l, grafo g){
 //         0, caso contrário
 
 int cordal(grafo g){
+	grafo copy = copia_grafo(g);
 }
