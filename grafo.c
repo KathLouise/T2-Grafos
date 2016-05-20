@@ -9,8 +9,6 @@
 // tamanho máximo da string para representar o peso de uma aresta/arco
 #define MAX_STRING_SIZE 256
 
-long n_rotulo = 0;
- 
 //------------------------------------------------------------------------------
 // (apontador para) estrutura de dados para representar um grafo
 //
@@ -43,7 +41,7 @@ struct vertice{
     lista adjacencias_saida;
     unsigned int grau_entrada; // grau do vertice
     unsigned int grau_saida; // grau do vertice
-    long rotulo; //rotulo do vertice {1..n}
+    int *rotulo; //rotulo do vertice {1..n}
 };
 //------------------------------------------------------------------------------
 // estrutura dos vizinhos
@@ -503,19 +501,54 @@ static unsigned int findRemoved(lista l){
 // devolve 1, se o conjunto dos vertices em l é uma clique em g, ou
 //         0, caso contrário
 //
-// um conjunto C de vértices de um grafo é uma clique em g 
+// um conjunto C de vértices de um grafo é uma clique em g
 // se todo vértice em C é vizinho de todos os outros vértices de C em g
-
+ 
+    // faz um loop em cima de cada elemento da lista l      
+    // para cada elemento pega sua vizinhaca
+    // se a vizinhaca conter todos os elementos da lista l continua
+    // se não conter retorna 0
+   
 int clique(lista l, grafo g){
+    unsigned int removed = findRemoved(l);
+    for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
+        vertice v = conteudo(n);
+        if(v->removido == 0){  
+            lista vizinhos = vizinhanca(v,0,g);
+            unsigned int todos_nos = tamanho_lista(l) - removed - 1;
+            for (no auxN=primeiro_no(vizinhos); auxN!=NULL; auxN=proximo_no(auxN)) {
+                if(todos_nos == 0)
+                    break;
+                vertice auxV = conteudo(auxN);
+                if(auxV->removido == 0){
+                    for (no verifiyNode=primeiro_no(l); verifiyNode!=NULL; verifiyNode=proximo_no(verifiyNode)) {
+                        vertice verifyVertice = conteudo(verifiyNode);  
+                        if(verifyVertice->removido == 0){
+                            if(strcmp(verifyVertice->nome,auxV->nome) == 0){
+                                todos_nos--;
+                                break;
+                            }  
+                        }
+                    }
+                }
+            }
+            if(todos_nos != 0){
+                return 0;
+            }
+        }
+    }  
+    return 1;
 }
-
+ 
 //------------------------------------------------------------------------------
 // devolve 1, se v é um vértice simplicial em g, ou
 //         0, caso contrário
 //
 // um vértice é simplicial no grafo se sua vizinhança é uma clique
-
-int simplicial(vertice v, grafo g){
+ 
+int simplicial(vertice v, grafo g){      
+    lista vizinhos = vizinhanca(v,0,g);    
+    return clique(vizinhos,g);
 }
 
 //------------------------------------------------------------------------------
