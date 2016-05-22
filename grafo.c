@@ -36,12 +36,14 @@ struct grafo{
 struct vertice{
     char *nome; // nome do vertice
     unsigned int id; // id = posição do vertice no vetor de vertices do grafo, serve para facilitar a busca de vertices
-    int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
-    lista adjacencias_entrada;
-    lista adjacencias_saida;
     unsigned int grau_entrada; // grau do vertice
     unsigned int grau_saida; // grau do vertice
+    int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
     int *rotulo; //rotulo do vertice {1..n}
+    int tamRotulo;    
+    int padding;
+    lista adjacencias_entrada;
+    lista adjacencias_saida;
 };
 //------------------------------------------------------------------------------
 // estrutura dos vizinhos
@@ -572,4 +574,46 @@ int ordem_perfeita_eliminacao(lista l, grafo g){
 
 int cordal(grafo g){
 	grafo copy = copia_grafo(g);
+}
+
+
+
+// Retorna o vertice lexico
+vertice findLexico(no verticeVerify, grafo g){
+        int maior = 0;
+        int notFinished = 1;
+        int k = 0;        
+
+        vertice v = conteudo(verticeVerify);
+        lista vizinhos = vizinhanca(v,0,g);
+
+        while(notFinished){
+            lista result = findMaior(vizinhos,k,maior);
+            unsigned int tamResult = tamanho_lista(result) ;
+            unsigned int tamLexico = tamanho_lista(vizinhos) ;
+            if(tamResult > 0 && tamResult < tamLexico){
+                vizinhos = result;
+            }
+            else{
+                notFinished = 0;            
+            }
+            k++;
+        }
+
+        no verticeNo=primeiro_no(vizinhos);
+        return conteudo(verticeNo);
+}
+
+
+// Retorna uma lista de maiores lexicos, se nao houver retorna uma lista vazia
+lista findMaior(lista vizinhos, int k, int maior){
+    lista lexicos = constroi_lista();
+    for (no auxN=primeiro_no(vizinhos); auxN!=NULL; auxN=proximo_no(auxN)) {
+        vertice auxV = conteudo(auxN);
+        if(k < auxV->tamRotulo && auxV->rotulo[k] >= maior){
+            insere_lista(auxV,lexicos);
+            maior = auxV->rotulo[k];
+        }
+    }
+    return lexicos;
 }

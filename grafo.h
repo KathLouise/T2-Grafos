@@ -172,4 +172,10 @@ int ordem_perfeita_eliminacao(lista l, grafo g);
 
 int cordal(grafo g);
 
+
+
+vertice findLexico(no verticeVerify, grafo g);
+
+lista findMaior(lista vizinhos, int k, int maior);
+
 #endif
