@@ -39,9 +39,10 @@ struct vertice{
     unsigned int grau_entrada; // grau do vertice
     unsigned int grau_saida; // grau do vertice
     int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
-    int *rotulo; //rotulo do vertice {1..n}
     int tamRotulo;    
-    int padding;
+    int passado;
+    char *rotuloString;
+    //lista rotulos; //rotulo do vertice {1..n}
     lista adjacencias_entrada;
     lista adjacencias_saida;
 };
@@ -551,12 +552,89 @@ int simplicial(vertice v, grafo g){
     return clique(vizinhos,g);
 }
 
+
+
+static void generateConcatRotule(vertice v, unsigned int rotulo){
+    unsigned int length =(unsigned int) snprintf(NULL, 0,"%d",rotulo);
+    char str[length];
+    sprintf(str, "%d", rotulo);
+
+    size_t tam =(size_t) strlen(v->rotuloString)+1+length;
+
+    printf("Tamanho da nova string_generateConcatRotule: %zu\n", tam);
+    v->rotuloString = realloc(v->rotuloString,tam); /* make space for the new string (should check the return value ...) */
+    strcat( v->rotuloString, str); /* add the extension */
+    
+}
+
+static int generateNumberRotule(vertice v){
+    return atoi(v->rotuloString);
+}
+
+// Retorna o vertice lexico
+static vertice findLexico(grafo g){
+        int maior = 0;
+        unsigned int indexLexico = g->n_vertices+1;
+
+        for(unsigned int i=0; i < g->n_vertices; i++){
+            if(g->vertices[i]->passado!=1 && g->vertices[i]->rotuloString!=NULL){
+                if(generateNumberRotule(g->vertices[i]) > maior){
+                    maior = generateNumberRotule(g->vertices[i]);
+                    indexLexico = i;
+                }
+            }
+        }
+
+        if(indexLexico < g->n_vertices+1)
+            return g->vertices[indexLexico];
+        else
+            return NULL;
+}
+
+
+static void rotulaVizinhaca(vertice raiz, grafo g){
+    lista vizinhos = vizinhanca(raiz,0,g);    
+    for (no n=primeiro_no(vizinhos); n!=NULL; n=proximo_no(n)) {
+        
+        
+        unsigned int rotuloRaiz =(unsigned int) raiz->rotuloString[0];
+        printf("Rotulo raiz_rotulaVizinhaca: %d\n", rotuloRaiz);
+        vertice auxV = conteudo(n);
+        generateConcatRotule(auxV,rotuloRaiz-1);
+    }  
+}
+
+
 //------------------------------------------------------------------------------
 // devolve uma lista de vertices com a ordem dos vértices dada por uma 
 // busca em largura lexicográfica
 
 lista busca_largura_lexicografica(grafo g){
+    lista arvore = constroi_lista();
+    int naoTerminou=1;
+    if(g->vertices!=NULL){
+        unsigned int rotulo = g->n_vertices;
+        vertice raiz = g->vertices[0];
+        generateConcatRotule(raiz,rotulo);
+        rotulaVizinhaca(raiz,g);
+
+        raiz->passado = 1;
+        insere_lista(raiz, arvore);
+        while(naoTerminou){
+            vertice lexico = findLexico(g);
+            if(lexico!=NULL){
+                rotulaVizinhaca(lexico,g);
+                insere_lista(lexico, arvore);
+            }
+            else{
+                naoTerminou = 0;
+            }
+        }
+    }
+
+    return arvore;
 }
+
 
 //------------------------------------------------------------------------------
 // devolve 1, se a lista l representa uma 
@@ -566,6 +644,7 @@ lista busca_largura_lexicografica(grafo g){
 // o tempo de execução é O(|V(G)|+|E(G)|)
 
 int ordem_perfeita_eliminacao(lista l, grafo g){
+    return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -574,46 +653,7 @@ int ordem_perfeita_eliminacao(lista l, grafo g){
 
 int cordal(grafo g){
 	grafo copy = copia_grafo(g);
+    return 0;
 }
 
 
-
-// Retorna o vertice lexico
-vertice findLexico(no verticeVerify, grafo g){
-        int maior = 0;
-        int notFinished = 1;
-        int k = 0;        
-
-        vertice v = conteudo(verticeVerify);
-        lista vizinhos = vizinhanca(v,0,g);
-
-        while(notFinished){
-            lista result = findMaior(vizinhos,k,maior);
-            unsigned int tamResult = tamanho_lista(result) ;
-            unsigned int tamLexico = tamanho_lista(vizinhos) ;
-            if(tamResult > 0 && tamResult < tamLexico){
-                vizinhos = result;
-            }
-            else if(tamResult == 0){
-                notFinished = 0;            
-            }
-            k++;
-        }
-
-        no verticeNo=primeiro_no(vizinhos);
-        return conteudo(verticeNo);
-}
-
-
-// Retorna uma lista de maiores lexicos, se nao houver retorna uma lista vazia
-lista findMaior(lista vizinhos, int k, int maior){
-    lista lexicos = constroi_lista();
-    for (no auxN=primeiro_no(vizinhos); auxN!=NULL; auxN=proximo_no(auxN)) {
-        vertice auxV = conteudo(auxN);
-        if(k < auxV->tamRotulo && auxV->rotulo[k] >= maior){
-            insere_lista(auxV,lexicos);
-            maior = auxV->rotulo[k];
-        }
-    }
-    return lexicos;
-}
