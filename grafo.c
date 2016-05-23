@@ -653,7 +653,8 @@ int ordem_perfeita_eliminacao(lista l, grafo g){
 
 int cordal(grafo g){
 	grafo copy = copia_grafo(g);
-    return 0;
+    lista lexica = busca_largura_lexicografica(copy);
+    return ordem_perfeita_eliminacao(lexica,copy);
 }
 
 
