@@ -594,7 +594,7 @@ vertice findLexico(no verticeVerify, grafo g){
             if(tamResult > 0 && tamResult < tamLexico){
                 vizinhos = result;
             }
-            else{
+            else if(tamResult == 0){
                 notFinished = 0;            
             }
             k++;
