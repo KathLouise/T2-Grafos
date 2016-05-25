@@ -41,7 +41,7 @@ struct vertice{
     int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
     int tamRotulo;    
     int passado;
-    unsigned long long int rotulo;
+    unsigned int *rotulo;
     //lista rotulos; //rotulo do vertice {1..n}
     lista adjacencias_entrada;
     lista adjacencias_saida;
@@ -147,7 +147,7 @@ static vertice cria_vertice(grafo g, const char *nome){
         v->grau_entrada = 0;
         v->grau_saida = 0;
         v->removido = 0;
-        v->rotulo = 0;
+        v->rotulo = NULL;
         g->vertices[v->id] = v;
         g->n_vertices++;
 
@@ -557,48 +557,72 @@ int simplicial(vertice v, grafo g){
 
 static void generateNumberRotule(vertice v, unsigned int rotulo){
     
-    if(v->rotulo == 0){
-        v->rotulo = rotulo;
+    v->rotulo = realloc (v->rotulo,sizeof(unsigned int));
+
+    v->rotulo[v->tamRotulo] = rotulo;
+    v->tamRotulo++;
+
+}
+
+// Retorna uma lista de maiores lexicos, se nao houver retorna uma lista vazia
+static lista findMaior(int posicao, unsigned int maiorRotulo, grafo g){
+    lista lexicos = constroi_lista();
+
+    for(unsigned int i=0; i < g->n_vertices; i++){
+        if(g->vertices[i]->passado!=1 && g->vertices[i]->rotulo!=NULL){
+            if(posicao < g->vertices[i]->tamRotulo){
+
+                if(g->vertices[i]->rotulo[posicao] > maiorRotulo){
+                    destroi_lista(lexicos, NULL);
+                    lexicos = constroi_lista();
+                    insere_lista(g->vertices[i],lexicos);
+                    maiorRotulo = g->vertices[i]->rotulo[posicao];
+                }
+                else if(g->vertices[i]->rotulo[posicao] == maiorRotulo){
+                    insere_lista(g->vertices[i],lexicos);  
+                }
+            }
+        }
     }
-    else{
-        unsigned long long int length =(unsigned long long int) snprintf(NULL, 0,"%d",v->rotulo);
-        v->rotulo = v->rotulo * (potencia(10,length)) + rotulo;
-    }
-    
+
+    return lexicos;
 }
 
 // Retorna o vertice lexico
 static vertice findLexico(grafo g){
-        unsigned long long int maior = 0;
-        unsigned int indexLexico = g->n_vertices+1;
+        unsigned int maior = 0;
+        int notFinished = 1;
+        int k = 0;
+        lista result;
 
-        for(unsigned int i=0; i < g->n_vertices; i++){
-            if(g->vertices[i]->passado!=1 && g->vertices[i]->rotulo!=NULL){
-                if(g->vertices[i]->rotulo > maior){
-                    maior = g->vertices[i]->rotulo;
-                    indexLexico = i;
-                }
+        vertice v = NULL;
+
+        while(notFinished){
+            result = findMaior(k,maior,g);
+            unsigned int tamResult = (unsigned int) tamanho_lista(result);
+            if(tamResult == 0){
+                notFinished = 0;            
             }
+            else{
+                no verticeNo=primeiro_no(result);
+                v = conteudo(verticeNo);
+            }
+            k++;
         }
 
-        if(indexLexico < g->n_vertices+1)
-            return g->vertices[indexLexico];
-        else
-            return NULL;
+        return v;
 }
 
-static unsigned long long int potencia(unsigned int x,  unsigned long long int y){
-    return (unsigned long long int) pow((double)x,(double)y);
-}
+// static unsigned long long int potencia(unsigned int x,  unsigned long long int y){
+//     return (unsigned long long int) pow((double)x,(double)y);
+// }
 
 
 static void rotulaVizinhaca(vertice raiz, grafo g){
     lista vizinhos = vizinhanca(raiz,0,g);    
     for (no n=primeiro_no(vizinhos); n!=NULL; n=proximo_no(n)) {
-        unsigned long long int length =(unsigned long long int) snprintf(NULL, 0,"%d",v->rotulo);
-        unsigned long long int rotuloRaiz =(unsigned int) raiz->rotulo / (potencia(10,length-1));
-
-        printf("Rotulo raiz_rotulaVizinhaca: %d\n", rotuloRaiz);
+        unsigned int rotuloRaiz = raiz->rotulo[0];
+        
         vertice auxV = conteudo(n);
         generateNumberRotule(auxV,rotuloRaiz-1);
     }  
@@ -614,9 +638,8 @@ lista busca_largura_lexicografica(grafo g){
     if(g->vertices!=NULL){
         unsigned int rotulo = g->n_vertices;
         vertice raiz = g->vertices[0];
-        generateConcatRotule(raiz,rotulo);
+        generateNumberRotule(raiz,rotulo);
         rotulaVizinhaca(raiz,g);
-
         raiz->passado = 1;
         insere_lista(raiz, arvore);
         while(naoTerminou){
@@ -624,10 +647,12 @@ lista busca_largura_lexicografica(grafo g){
             if(lexico!=NULL){
                 rotulaVizinhaca(lexico,g);
                 insere_lista(lexico, arvore);
+                lexico->passado = 1;
             }
             else{
                 naoTerminou = 0;
             }
+
         }
     }
 
@@ -643,7 +668,14 @@ lista busca_largura_lexicografica(grafo g){
 // o tempo de execução é O(|V(G)|+|E(G)|)
 
 int ordem_perfeita_eliminacao(lista l, grafo g){
-    return 0;
+    for (no auxN=primeiro_no(l); auxN!=NULL; auxN=proximo_no(auxN)) {
+        vertice auxV = conteudo(auxN);
+        if(simplicial(auxV,g))
+            auxV->removido=1;
+        else
+            return 0;
+    }
+    return 1;
 }
 
 //------------------------------------------------------------------------------
@@ -651,9 +683,8 @@ int ordem_perfeita_eliminacao(lista l, grafo g){
 //         0, caso contrário
 
 int cordal(grafo g){
-	grafo copy = copia_grafo(g);
+    grafo copy = copia_grafo(g);
     lista lexica = busca_largura_lexicografica(copy);
     return ordem_perfeita_eliminacao(lexica,copy);
 }
-
 
