@@ -41,7 +41,7 @@ struct vertice{
     int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
     int tamRotulo;    
     int passado;
-    char *rotuloString;
+    unsigned long long int rotulo;
     //lista rotulos; //rotulo do vertice {1..n}
     lista adjacencias_entrada;
     lista adjacencias_saida;
@@ -147,6 +147,7 @@ static vertice cria_vertice(grafo g, const char *nome){
         v->grau_entrada = 0;
         v->grau_saida = 0;
         v->removido = 0;
+        v->rotulo = 0;
         g->vertices[v->id] = v;
         g->n_vertices++;
 
@@ -554,32 +555,27 @@ int simplicial(vertice v, grafo g){
 
 
 
-static void generateConcatRotule(vertice v, unsigned int rotulo){
-    unsigned int length =(unsigned int) snprintf(NULL, 0,"%d",rotulo);
-    char str[length];
-    sprintf(str, "%d", rotulo);
-
-    size_t tam =(size_t) strlen(v->rotuloString)+1+length;
-
-    printf("Tamanho da nova string_generateConcatRotule: %zu\n", tam);
-    v->rotuloString = realloc(v->rotuloString,tam); /* make space for the new string (should check the return value ...) */
-    strcat( v->rotuloString, str); /* add the extension */
+static void generateNumberRotule(vertice v, unsigned int rotulo){
     
-}
-
-static int generateNumberRotule(vertice v){
-    return atoi(v->rotuloString);
+    if(v->rotulo == 0){
+        v->rotulo = rotulo;
+    }
+    else{
+        unsigned long long int length =(unsigned long long int) snprintf(NULL, 0,"%d",v->rotulo);
+        v->rotulo = v->rotulo * (potencia(10,length)) + rotulo;
+    }
+    
 }
 
 // Retorna o vertice lexico
 static vertice findLexico(grafo g){
-        int maior = 0;
+        unsigned long long int maior = 0;
         unsigned int indexLexico = g->n_vertices+1;
 
         for(unsigned int i=0; i < g->n_vertices; i++){
-            if(g->vertices[i]->passado!=1 && g->vertices[i]->rotuloString!=NULL){
-                if(generateNumberRotule(g->vertices[i]) > maior){
-                    maior = generateNumberRotule(g->vertices[i]);
+            if(g->vertices[i]->passado!=1 && g->vertices[i]->rotulo!=NULL){
+                if(g->vertices[i]->rotulo > maior){
+                    maior = g->vertices[i]->rotulo;
                     indexLexico = i;
                 }
             }
@@ -591,19 +587,22 @@ static vertice findLexico(grafo g){
             return NULL;
 }
 
+static unsigned long long int potencia(unsigned int x,  unsigned long long int y){
+    return (unsigned long long int) pow((double)x,(double)y);
+}
+
 
 static void rotulaVizinhaca(vertice raiz, grafo g){
     lista vizinhos = vizinhanca(raiz,0,g);    
     for (no n=primeiro_no(vizinhos); n!=NULL; n=proximo_no(n)) {
-        
-        
-        unsigned int rotuloRaiz =(unsigned int) raiz->rotuloString[0];
+        unsigned long long int length =(unsigned long long int) snprintf(NULL, 0,"%d",v->rotulo);
+        unsigned long long int rotuloRaiz =(unsigned int) raiz->rotulo / (potencia(10,length-1));
+
         printf("Rotulo raiz_rotulaVizinhaca: %d\n", rotuloRaiz);
         vertice auxV = conteudo(n);
-        generateConcatRotule(auxV,rotuloRaiz-1);
+        generateNumberRotule(auxV,rotuloRaiz-1);
     }  
 }
-
 
 //------------------------------------------------------------------------------
 // devolve uma lista de vertices com a ordem dos vértices dada por uma 
