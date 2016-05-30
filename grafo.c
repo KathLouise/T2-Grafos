@@ -39,10 +39,9 @@ struct vertice{
     unsigned int grau_entrada; // grau do vertice
     unsigned int grau_saida; // grau do vertice
     int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
-    int tamRotulo;    
+    int tamRotulo; //tamanho da lista de rotulos atual 
     int passado;
-    unsigned int *rotulo;
-    //lista rotulos; //rotulo do vertice {1..n}
+    unsigned int *rotulo; //rotulo do vertice {1..n}
     lista adjacencias_entrada;
     lista adjacencias_saida;
 };
@@ -557,10 +556,9 @@ int simplicial(vertice v, grafo g){
 
 static void generateNumberRotule(vertice v, unsigned int rotulo){
     
-    v->rotulo = realloc (v->rotulo,sizeof(unsigned int));
-
+    v->rotulo = realloc (v->rotulo,sizeof(unsigned int)* (unsigned int)(v->tamRotulo+1));
     v->rotulo[v->tamRotulo] = rotulo;
-    v->tamRotulo++;
+    v->tamRotulo+=1;
 
 }
 
@@ -586,6 +584,7 @@ static lista findMaior(int posicao, unsigned int maiorRotulo, grafo g){
     }
 
     return lexicos;
+    free(lexicos);
 }
 
 // Retorna o vertice lexico
@@ -611,6 +610,7 @@ static vertice findLexico(grafo g){
         }
 
         return v;
+	free(result);
 }
 
 // static unsigned long long int potencia(unsigned int x,  unsigned long long int y){
@@ -626,6 +626,7 @@ static void rotulaVizinhaca(vertice raiz, grafo g){
         vertice auxV = conteudo(n);
         generateNumberRotule(auxV,rotuloRaiz-1);
     }  
+    free(vizinhos);
 }
 
 //------------------------------------------------------------------------------
@@ -657,6 +658,7 @@ lista busca_largura_lexicografica(grafo g){
     }
 
     return arvore;
+    free(arvore);
 }
 
 
@@ -686,5 +688,6 @@ int cordal(grafo g){
     grafo copy = copia_grafo(g);
     lista lexica = busca_largura_lexicografica(copy);
     return ordem_perfeita_eliminacao(lexica,copy);
+    free(copy);
+    free(lexica);
 }
-
