@@ -487,16 +487,16 @@ unsigned int grau(vertice v, int direcao, grafo g){
 }
 
 //------------------------------------------------------------------------------
-static unsigned int findRemoved(lista l){
-    unsigned int removed = 0 ;
-    for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
-        vertice v = conteudo(n);
-        if(v->removido == 1){
-           removed ++;
-        }
-    }
-    return removed;
-}
+// static unsigned int findRemoved(lista l){
+    // unsigned int removed = 0 ;
+    // for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
+        // vertice v = conteudo(n);
+        // if(v->removido == 1){
+           // removed ++;
+        // }
+    // }
+    // return removed;
+//}
  
 //------------------------------------------------------------------------------
 // devolve 1, se o conjunto dos vertices em l é uma clique em g, ou
@@ -511,34 +511,65 @@ static unsigned int findRemoved(lista l){
     // se não conter retorna 0
    
 int clique(lista l, grafo g){
-    unsigned int removed = findRemoved(l);
-    for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
-        vertice v = conteudo(n);
-        if(v->removido == 0){  
-            lista vizinhos = vizinhanca(v,0,g);
-            unsigned int todos_nos = tamanho_lista(l) - removed - 1;
-            for (no auxN=primeiro_no(vizinhos); auxN!=NULL; auxN=proximo_no(auxN)) {
-                if(todos_nos == 0)
-                    break;
-                vertice auxV = conteudo(auxN);
-                if(auxV->removido == 0){
-                    for (no verifiyNode=primeiro_no(l); verifiyNode!=NULL; verifiyNode=proximo_no(verifiyNode)) {
-                        vertice verifyVertice = conteudo(verifiyNode);  
-                        if(verifyVertice->removido == 0){
-                            if(strcmp(verifyVertice->nome,auxV->nome) == 0){
-                                todos_nos--;
-                                break;
-                            }  
-                        }
-                    }
-                }
-            }
-            if(todos_nos != 0){
-                return 0;
-            }
-        }
-    }  
-    return 1;
+    // unsigned int removed = findRemoved(l);
+    // for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
+        // vertice v = conteudo(n);
+        // if(v->removido == 0){  
+            // lista vizinhos = vizinhanca(v,0,g);
+            // unsigned int todos_nos = tamanho_lista(l) - removed - 1;
+            // for (no auxN=primeiro_no(vizinhos); auxN!=NULL; auxN=proximo_no(auxN)) {
+                // if(todos_nos == 0)
+                    // break;
+                // vertice auxV = conteudo(auxN);
+                // if(auxV->removido == 0){
+                    // for (no verifiyNode=primeiro_no(l); verifiyNode!=NULL; verifiyNode=proximo_no(verifiyNode)) {
+                        // vertice verifyVertice = conteudo(verifiyNode);  
+                        // if(verifyVertice->removido == 0){
+                            // if(strcmp(verifyVertice->nome,auxV->nome) == 0){
+                                // todos_nos--;
+                                // break;
+                            // }  
+                        // }
+                    // }
+                // }
+            // }
+            // if(todos_nos != 0){
+                // return 0;
+            // }
+        // }
+    // }  
+    // return 1;
+	vertice w = NULL;
+	for(no auxViz=primeiro_no(l); auxViz!=NULL; auxViz=proximo_no(auxViz)){
+		w = conteudo(auxViz);
+		if(w->removido==0){
+			break;
+		}
+	}
+
+	if(w!=NULL){
+		lista vizinhosW = vizinhanca(w,0,g);
+		int notFound;
+
+		for(no auxVizV=primeiro_no(l); auxVizV!=NULL; auxVizV=proximo_no(auxVizV)){
+			vertice auxV = conteudo(auxVizV);
+			if(strcmp(auxV->nome,w->nome) != 0){
+				notFound = 1;
+				for(no auxVizW=primeiro_no(vizinhosW); auxVizW!=NULL; auxVizW=proximo_no(auxVizW)){
+					vertice auxW = conteudo(auxVizW);
+					if(strcmp(auxW->nome,auxV->nome) == 0){
+						notFound = 0;
+						break;
+					}
+				}
+				if(notFound)
+					return 0;
+			}
+
+		}
+		
+	}
+	return 1;
 }
  
 //------------------------------------------------------------------------------
@@ -671,11 +702,14 @@ lista busca_largura_lexicografica(grafo g){
 
 int ordem_perfeita_eliminacao(lista l, grafo g){
     for (no auxN=primeiro_no(l); auxN!=NULL; auxN=proximo_no(auxN)) {
-        vertice auxV = conteudo(auxN);
-        if(simplicial(auxV,g))
+		vertice auxV = conteudo(auxN);
+		if(simplicial(auxV,g)){
+			printf("Nome do vertice removido: %s \n", auxV->nome);
             auxV->removido=1;
+		}
         else
             return 0;
+		
     }
     return 1;
 }
@@ -691,3 +725,4 @@ int cordal(grafo g){
     free(copy);
     free(lexica);
 }
+
