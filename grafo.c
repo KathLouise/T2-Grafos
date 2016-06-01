@@ -539,6 +539,7 @@ int clique(lista l, grafo g){
         // }
     // }  
     // return 1;
+
 	vertice w = NULL;
 	for(no auxViz=primeiro_no(l); auxViz!=NULL; auxViz=proximo_no(auxViz)){
 		w = conteudo(auxViz);
@@ -693,6 +694,18 @@ lista busca_largura_lexicografica(grafo g){
 }
 
 
+static int leftPosition (vertice w, no auxN){
+    int index = 0;
+    for(no auxViz=proximo_no(auxN); auxViz!=NULL; auxViz=proximo_no(auxViz)){
+        vertice v = conteudo(auxViz);
+        if(strcmp(w->nome,v->nome) == 0){
+            return index;
+        }
+        index++;
+    }
+    return -1;
+}
+
 //------------------------------------------------------------------------------
 // devolve 1, se a lista l representa uma 
 //            ordem perfeita de eliminação para o grafo g ou
@@ -702,14 +715,48 @@ lista busca_largura_lexicografica(grafo g){
 
 int ordem_perfeita_eliminacao(lista l, grafo g){
     for (no auxN=primeiro_no(l); auxN!=NULL; auxN=proximo_no(auxN)) {
-		vertice auxV = conteudo(auxN);
-		if(simplicial(auxV,g)){
-			printf("Nome do vertice removido: %s \n", auxV->nome);
-            auxV->removido=1;
-		}
-        else
-            return 0;
-		
+
+        int menor = -1;
+        vertice v = conteudo(auxN);
+        printf("Vertice lexico: %s\n", v->nome);
+        vertice w = NULL;
+        lista vizinhos = vizinhanca(v,0,g);
+        for(no auxViz=primeiro_no(vizinhos); auxViz!=NULL; auxViz=proximo_no(auxViz)){
+            vertice auxRight = conteudo(auxViz);
+            if(auxRight->removido==0){
+               int index = leftPosition(auxRight, auxN);
+               if(((menor==-1 ) || (index < menor)) && index>=0){
+                    menor = index;
+                    w = auxRight;
+               }
+            }
+        }
+
+
+
+        if(w!=NULL){
+            printf("Vertice mais a direita: %s\n", w->nome);
+            lista vizinhosW = vizinhanca(w,0,g);
+            int notFound;
+            for(no auxVizV=primeiro_no(vizinhos); auxVizV!=NULL; auxVizV=proximo_no(auxVizV)){
+                vertice auxV = conteudo(auxVizV);
+                if(strcmp(auxV->nome,w->nome) != 0 && auxV->removido == 0){
+                    printf("Vizinho v: %s\n", auxV->nome);
+                    notFound = 1;
+                    for(no auxVizW=primeiro_no(vizinhosW); auxVizW!=NULL; auxVizW=proximo_no(auxVizW)){
+                       vertice auxW = conteudo(auxVizW);
+                       printf("Vizinho w: %s\n", auxW->nome);
+                       if(strcmp(auxW->nome,auxV->nome) == 0){
+                           notFound = 0;
+                           break;
+                        }
+                    }
+                    if(notFound)
+                        return 0;
+                }
+            }
+            v->removido=1;
+        }
     }
     return 1;
 }
