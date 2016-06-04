@@ -39,8 +39,8 @@ struct vertice{
     unsigned int grau_entrada; // grau do vertice
     unsigned int grau_saida; // grau do vertice
     int removido; // se for 1 a aresta do grafo foi removida, se for 0, nao
-    int tamRotulo; //tamanho da lista de rotulos atual 
-    int passado;
+    int tamRotulo; //tamanho do vetor de rotulos atual 
+    int passado; //se foi passado 1, senao 0
     unsigned int *rotulo; //rotulo do vertice {1..n}
     lista adjacencias_entrada;
     lista adjacencias_saida;
@@ -487,6 +487,8 @@ unsigned int grau(vertice v, int direcao, grafo g){
 }
 
 //------------------------------------------------------------------------------
+//Encontra o vertice que foi removido do grafo
+
 static unsigned int findRemoved(lista l){
     unsigned int removed = 0 ;
     for (no n=primeiro_no(l); n!=NULL; n=proximo_no(n)) {
@@ -551,8 +553,7 @@ int simplicial(vertice v, grafo g){
     lista vizinhos = vizinhanca(v,0,g);    
     return clique(vizinhos,g);
 }
-
-
+//------------------------------------------------------------------------------
 
 static void generateNumberRotule(vertice v, unsigned int rotulo){
     
@@ -561,8 +562,9 @@ static void generateNumberRotule(vertice v, unsigned int rotulo){
     v->tamRotulo+=1;
 
 }
-
+//------------------------------------------------------------------------------
 // Retorna uma lista de maiores lexicos, se nao houver retorna uma lista vazia
+
 static lista findMaior(int posicao, unsigned int maiorRotulo, grafo g){
     lista lexicos = constroi_lista();
 
@@ -586,8 +588,9 @@ static lista findMaior(int posicao, unsigned int maiorRotulo, grafo g){
     return lexicos;
     free(lexicos);
 }
-
+//------------------------------------------------------------------------------
 // Retorna o vertice lexico
+
 static vertice findLexico(grafo g){
         unsigned int maior = 0;
         int notFinished = 1;
@@ -612,11 +615,7 @@ static vertice findLexico(grafo g){
         return v;
 	free(result);
 }
-
-// static unsigned long long int potencia(unsigned int x,  unsigned long long int y){
-//     return (unsigned long long int) pow((double)x,(double)y);
-// }
-
+//------------------------------------------------------------------------------
 
 static void rotulaVizinhaca(vertice raiz, grafo g){
     lista vizinhos = vizinhanca(raiz,0,g);    
@@ -660,7 +659,19 @@ lista busca_largura_lexicografica(grafo g){
     return arvore;
     free(arvore);
 }
+//------------------------------------------------------------------------------
 
+static int leftPosition (vertice w, no auxN){
+    int index = 0;
+    for(no auxViz=proximo_no(auxN); auxViz!=NULL; auxViz=proximo_no(auxViz)){
+        vertice v = conteudo(auxViz);
+        if(strcmp(w->nome,v->nome) == 0){
+            return index;
+        }
+        index++;
+    }
+    return -1;
+}
 
 //------------------------------------------------------------------------------
 // devolve 1, se a lista l representa uma 
@@ -670,12 +681,46 @@ lista busca_largura_lexicografica(grafo g){
 // o tempo de execução é O(|V(G)|+|E(G)|)
 
 int ordem_perfeita_eliminacao(lista l, grafo g){
+	
     for (no auxN=primeiro_no(l); auxN!=NULL; auxN=proximo_no(auxN)) {
-        vertice auxV = conteudo(auxN);
-        if(simplicial(auxV,g))
-            auxV->removido=1;
-        else
-            return 0;
+        int menor = -1;
+        vertice v = conteudo(auxN);
+        
+        vertice w = NULL;
+        lista vizinhos = vizinhanca(v,0,g);
+        for(no auxViz=primeiro_no(vizinhos); auxViz!=NULL; auxViz=proximo_no(auxViz)){
+            vertice auxRight = conteudo(auxViz);
+            if(auxRight->removido==0){
+               int index = leftPosition(auxRight, auxN);
+               if(((menor==-1 ) || (index < menor)) && index>=0){
+                    menor = index;
+                    w = auxRight;
+               }
+            }
+        }
+
+        if(w!=NULL){
+            lista vizinhosW = vizinhanca(w,0,g);
+            int notFound;
+            for(no auxVizV=primeiro_no(vizinhos); auxVizV!=NULL; auxVizV=proximo_no(auxVizV)){
+                vertice auxV = conteudo(auxVizV);
+                if(strcmp(auxV->nome,w->nome) != 0 && auxV->removido == 0){
+                    
+                    notFound = 1;
+                    for(no auxVizW=primeiro_no(vizinhosW); auxVizW!=NULL; auxVizW=proximo_no(auxVizW)){
+                       vertice auxW = conteudo(auxVizW);
+                       
+                       if(strcmp(auxW->nome,auxV->nome) == 0){
+                           notFound = 0;
+                           break;
+                        }
+                    }
+                    if(notFound)
+                        return 0;
+                }
+            }
+            v->removido=1;
+        }
     }
     return 1;
 }
