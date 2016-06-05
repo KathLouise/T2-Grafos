@@ -554,7 +554,7 @@ int simplicial(vertice v, grafo g){
     return clique(vizinhos,g);
 }
 //------------------------------------------------------------------------------
-
+// Gera o rotulo para o vertice v
 static void generateNumberRotule(vertice v, unsigned int rotulo){
     
     v->rotulo = realloc (v->rotulo,sizeof(unsigned int)* (unsigned int)(v->tamRotulo+1));
@@ -616,7 +616,7 @@ static vertice findLexico(grafo g){
 	free(result);
 }
 //------------------------------------------------------------------------------
-
+// Rotula a vizinhaca do vertice raiz passado por parametro.
 static void rotulaVizinhaca(vertice raiz, grafo g){
     lista vizinhos = vizinhanca(raiz,0,g);    
     for (no n=primeiro_no(vizinhos); n!=NULL; n=proximo_no(n)) {
@@ -660,7 +660,7 @@ lista busca_largura_lexicografica(grafo g){
     free(arvore);
 }
 //------------------------------------------------------------------------------
-
+// Procura o vertice v da vizinhaca de AuxN na lista léxica e retorna a posição dele em relação ao auxN.
 static int leftPosition (vertice w, no auxN){
     int index = 0;
     for(no auxViz=proximo_no(auxN); auxViz!=NULL; auxViz=proximo_no(auxViz)){
